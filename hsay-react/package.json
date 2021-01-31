@@ -13,7 +13,7 @@
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "start": "cross-env DISABLE_NEW_JSX_TRANSFORM=true react-app-rewired start",
+    "start": "cross-env DISABLE_NEW_JSX_TRANSFORM=true react-scripts start",
     "build": "cross-env DISABLE_NEW_JSX_TRANSFORM=true&react-app-rewired build --mode=development",
     "test": "cross-env DISABLE_NEW_JSX_TRANSFORM=true&react-app-rewired test",
     "eject": "cross-env DISABLE_NEW_JSX_TRANSFORM=true&react-app-rewired eject"
