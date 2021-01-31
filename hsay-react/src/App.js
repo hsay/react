@@ -1,11 +1,13 @@
 import React from './indexreact';
 import logo from './logo.svg';
 import './App.css';
-
+function Children() {
+    return <div>this is chilren</div>
+}
 function App() {
   return (
     <div className="App">
-      1234
+      <Children />
     </div>
   );
 }

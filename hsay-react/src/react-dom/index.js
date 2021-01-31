@@ -8,11 +8,13 @@ function render(vdom, container){
     mount(vdom,container);
 }
 export function mount(vdom,container){
+    // 根据虚拟DOM生成真实DOM
     let newDOM = createDOM(vdom);
+    // 将真实DOM挂载到父元素上
     container.appendChild(newDOM);
 }
 /**
- * 把虚拟DOM变成真实DOM
+ * 把虚拟DOM变成真实DOM 返回值为真实DOM
  * @param {*} vdom 虚拟DOM
  */
 export function createDOM(vdom){
@@ -21,13 +23,20 @@ export function createDOM(vdom){
     if(type === REACT_TEXT){
         dom = document.createTextNode(props.content);
     }else if(typeof type === 'function'){//自定义的函数组件
-        // TODO
+        // 函数组件 类组件的虚拟dom是没有dom属性的
+        // 类组件
+        if(type.isReactComponent){ // 类组件的静态属性
+            return mountClassComponent(vdom)
+        }
+        // 函数组件
+        return mountFunctionComponent(vdom);
     }else{ // 原生组件
         dom = document.createElement(type);
     }
+    // 处理children， 以上生成的dom会作为所有children的container
     if(props){
         //使用虚拟DOM的属性更新刚创建出来的真实DOM的属性
-        //updateProps(dom,{},props);
+        updateProps(dom,{},props);
         //在这处理props.children属性
         //如果只有一个儿子，并且这个儿子是一个文本
         if(typeof props.children ==='object' && props.children.type){
@@ -45,6 +54,42 @@ export function createDOM(vdom){
     return dom;
 }
 /**
+ * 查找此虚拟DOM对应的真实DOM
+ * @param {*} vdom 
+ */
+export function findDOM(vdom){
+    let {type}= vdom;
+    let dom;
+    if(typeof type === 'function'){ //如果是组件的话
+        dom=findDOM(vdom.oldRenderVdom); // 这里的oldRenderVdom即函数组件返回值构成的虚拟DOM,或者类组件render的
+        // 返回值构成的虚拟DOM
+    }else{ // 普通的字符串，那说明它是一个原生组件。dom指向真实DOM
+        dom=vdom.dom;
+    }
+    return dom;
+}
+/**
+ * 渲染类组件
+ */
+function mountClassComponent(vdom){
+    const {type, props} = vdom;
+    const classInstance = new type(props);
+    const oldRenderVdom = classInstance.render();
+    classInstance.oldRenderVdom = vdom.oldRenderVdom = oldRenderVdom;
+    let dom =  createDOM(oldRenderVdom);
+    return dom;
+}
+/**
+ * 返回值需是真实DOM
+ * @param {*} vdom 
+ */
+function mountFunctionComponent(vdom){
+    const {type, props} = vdom;
+    const oldRenderVdom = type(props);
+    vdom.oldRenderVdom = oldRenderVdom;    
+    return createDOM(oldRenderVdom);
+}
+/**
  * 
  * @param {*} childrenVdom 儿子们的虚拟DOM
  * @param {*} parentDOM 父亲的真实DOM
@@ -53,6 +98,24 @@ function reconcileChildren(childrenVdom,parentDOM){
     for(let i=0;i<childrenVdom.length;i++){
         let childVdom = childrenVdom[i];
         mount(childVdom,parentDOM);
+    }
+}
+/**
+ * 使用虚拟DOM的属性更新刚创建出来的真实DOM的属性
+ * @param {*} dom 真实DOM
+ * @param {*} newProps 新属性对象 
+ */
+function updateProps(dom,oldProps,newProps){
+    for(let key in newProps){
+        if(key === 'children') continue;//单独处理,不在此处处理
+        if(key === 'style'){
+          let styleObj = newProps.style;
+          for(let attr in styleObj){
+              dom.style[attr]=styleObj[attr];
+          }
+        }else{//在JS中 dom.className='title'
+            dom[key]= newProps[key];
+        }
     }
   }
 const ReactDom = {

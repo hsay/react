@@ -1,4 +1,5 @@
 import {wrapToVdom} from '../utils/'
+import {Component} from '../component';
 /**
  * 
  * @param {*} type 元素类型 字符串类型 函数类型
@@ -32,5 +33,7 @@ function createElement(type, config, children){
     }
 }
 export default {
-    createElement
+    createElement, 
+    Component
+       
 }
